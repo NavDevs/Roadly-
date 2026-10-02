@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../constants/colors.dart';
-import '../models/report.dart';
 import '../providers/app_provider.dart';
+import '../widgets/expiring_report_list.dart';
 import '../widgets/map_preview.dart';
-import '../widgets/report_card.dart';
+import '../models/report.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,20 +16,27 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: Consumer<AppProvider>(
         builder: (context, appProvider, child) {
-          final reports = appProvider.reports;
-          final points = appProvider.points;
-          final rank = appProvider.rank;
-          
-          final verifiedCount = reports.where((r) => r.status == ReportStatus.verified).length;
+          // Only incidents the server still shows: expired/resolved ones are
+          // filtered out (the list animates them away at their TTL).
+          final reports = appProvider.liveReports;
           final myReportsCount = reports.where((r) => r.byUser).length;
+          final verifiedCount = reports.where((r) => r.status == ReportStatus.verified).length;
 
           return Stack(
             children: [
-              SingleChildScrollView(
-                padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top + 12,
-                  bottom: MediaQuery.of(context).padding.bottom + 120,
-                ),
+              RefreshIndicator(
+                color: AppColors.primarySoft,
+                backgroundColor: AppColors.card,
+                onRefresh: () => Future.wait([
+                  appProvider.fetchReports(),
+                  appProvider.fetchLeaderboard(),
+                ]),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top + 20,
+                    bottom: 100, // Space for FAB
+                  ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -42,18 +50,15 @@ class HomeScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Hello there',
+                                'Good Morning,',
                                 style: TextStyle(
                                   color: AppColors.mutedForeground,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  letterSpacing: 0.4,
+                                  fontSize: 14,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                'Roadly',
-                                style: TextStyle(
+                              Text(
+                                appProvider.name ?? 'Citizen',
+                                style: const TextStyle(
                                   color: AppColors.foreground,
                                   fontSize: 24,
                                   fontWeight: FontWeight.w700,
@@ -63,36 +68,22 @@ class HomeScreen extends StatelessWidget {
                             ],
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             decoration: BoxDecoration(
                               color: AppColors.card,
-                              borderRadius: BorderRadius.circular(999),
+                              borderRadius: BorderRadius.circular(20),
                               border: Border.all(color: AppColors.border),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.emoji_events, size: 14, color: AppColors.accent),
-                                const SizedBox(width: 8),
+                                const Icon(Icons.stars, color: AppColors.accent, size: 16),
+                                const SizedBox(width: 6),
                                 Text(
-                                  '$points pts',
+                                  '${appProvider.points} pts',
                                   style: const TextStyle(
                                     color: AppColors.foreground,
-                                    fontSize: 13,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                Container(
-                                  width: 1,
-                                  height: 14,
-                                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                                  color: AppColors.border,
-                                ),
-                                Text(
-                                  '#$rank',
-                                  style: const TextStyle(
-                                    color: AppColors.mutedForeground,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ],
@@ -100,13 +91,13 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Map
+                    ).animate().fade(duration: 400.ms).slideY(begin: -0.2, end: 0, curve: Curves.easeOutQuad),
+                    const SizedBox(height: 24),
+                    // Map Preview
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: MapPreview(reports: reports),
-                    ),
+                    ).animate().fade(delay: 100.ms, duration: 500.ms).scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1), curve: Curves.easeOutQuart),
                     const SizedBox(height: 14),
                     // Stats
                     Padding(
@@ -119,7 +110,7 @@ class HomeScreen extends StatelessWidget {
                               reports.length.toString(),
                               'Active',
                               AppColors.foreground,
-                            ),
+                            ).animate().fade(delay: 200.ms).slideY(begin: 0.2, curve: Curves.easeOutQuad),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -128,7 +119,7 @@ class HomeScreen extends StatelessWidget {
                               verifiedCount.toString(),
                               'Verified',
                               AppColors.success,
-                            ),
+                            ).animate().fade(delay: 300.ms).slideY(begin: 0.2, curve: Curves.easeOutQuad),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -137,7 +128,7 @@ class HomeScreen extends StatelessWidget {
                               myReportsCount.toString(),
                               'Yours',
                               AppColors.accent,
-                            ),
+                            ).animate().fade(delay: 400.ms).slideY(begin: 0.2, curve: Curves.easeOutQuad),
                           ),
                         ],
                       ),
@@ -160,7 +151,7 @@ class HomeScreen extends StatelessWidget {
                                 width: 44,
                                 height: 44,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.18),
+                                  color: Colors.white.withValues(alpha: 0.18),
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: const Icon(
@@ -200,8 +191,9 @@ class HomeScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                      ),
-                    ),
+                      ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+                       .shimmer(delay: 2.seconds, duration: 1500.ms, color: Colors.white.withValues(alpha: 0.2))
+                    ).animate().fade(delay: 500.ms).slideY(begin: 0.2, curve: Curves.easeOutQuad),
                     const SizedBox(height: 24),
                     // Recent reports header
                     Padding(
@@ -226,17 +218,16 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                    ),
+                    ).animate().fade(delay: 600.ms).slideX(begin: -0.1, curve: Curves.easeOut),
                     const SizedBox(height: 10),
-                    // Recent reports list
+                    // Recent reports list — cards animate out as their TTL ends
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        children: reports.take(6).map((r) => ReportCard(report: r)).toList(),
-                      ),
+                      child: ExpiringReportList(reports: reports.take(6).toList()),
                     ),
                   ],
                 ),
+              ),
               ),
               // FAB
               Positioned(
@@ -252,7 +243,7 @@ class HomeScreen extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.danger.withOpacity(0.5),
+                          color: AppColors.danger.withValues(alpha: 0.5),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
                         ),
@@ -264,7 +255,10 @@ class HomeScreen extends StatelessWidget {
                       size: 26,
                     ),
                   ),
-                ),
+                ).animate()
+                 .scale(delay: 1.seconds, duration: 500.ms, curve: Curves.elasticOut)
+                 .then(delay: 3.seconds)
+                 .shake(duration: 400.ms, hz: 3)
               ),
             ],
           );
@@ -283,14 +277,21 @@ class HomeScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 16, color: color),
+          ),
+          const SizedBox(height: 8),
           Text(
             value,
             style: const TextStyle(
               color: AppColors.foreground,
               fontSize: 22,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 4),
@@ -299,6 +300,7 @@ class HomeScreen extends StatelessWidget {
             style: const TextStyle(
               color: AppColors.mutedForeground,
               fontSize: 11,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

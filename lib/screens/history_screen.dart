@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors.dart';
 import '../models/report.dart';
@@ -29,15 +30,18 @@ class HistoryScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'My Reports',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.foreground,
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.5,
                   ),
-                ),
+                )
+                    .animate()
+                    .fade(delay: 40.ms, duration: 400.ms)
+                    .slideY(delay: 40.ms, duration: 400.ms, begin: 0.06, curve: Curves.easeOutQuad),
                 const SizedBox(height: 4),
                 Text(
                   'Everything you\'ve reported so far',
@@ -62,14 +66,23 @@ class HistoryScreen extends StatelessWidget {
                       child: _statCard(verifiedCount.toString(), 'Verified', color: AppColors.success),
                     ),
                   ],
-                ),
+                )
+                    .animate()
+                    .fade(delay: 140.ms, duration: 400.ms)
+                    .slideY(delay: 140.ms, duration: 400.ms, begin: 0.06, curve: Curves.easeOutQuad),
                 const SizedBox(height: 18),
                 if (myReports.isEmpty)
                   _emptyState(context)
+                      .animate()
+                      .fade(delay: 220.ms, duration: 400.ms)
+                      .slideY(delay: 220.ms, duration: 400.ms, begin: 0.06, curve: Curves.easeOutQuad)
                 else
                   Column(
                     children: myReports.map((r) => ReportCard(report: r)).toList(),
-                  ),
+                  )
+                      .animate()
+                      .fade(delay: 220.ms, duration: 400.ms)
+                      .slideY(delay: 220.ms, duration: 400.ms, begin: 0.06, curve: Curves.easeOutQuad),
               ],
             ),
           );

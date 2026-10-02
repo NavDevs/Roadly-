@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/colors.dart';
 import 'home_screen.dart';
 import 'rewards_screen.dart';
 import 'history_screen.dart';
@@ -24,15 +25,24 @@ class _TabsScreenState extends State<TabsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
+      // Soft crossfade between tabs instead of a hard swap.
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 280),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        child: KeyedSubtree(
+          key: ValueKey(_currentIndex),
+          child: _screens[_currentIndex],
+        ),
+      ),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF0B0F12),
-          border: Border(top: BorderSide(color: const Color(0xFF1F2933), width: 1)),
+        decoration: const BoxDecoration(
+          color: Color(0xFF0B0F12),
+          border: Border(top: BorderSide(color: Color(0xFF1F2933), width: 1)),
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: 8, top: 6),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -50,25 +60,35 @@ class _TabsScreenState extends State<TabsScreen> {
 
   Widget _buildTabItem(int index, IconData icon, String label) {
     final isSelected = _currentIndex == index;
+    final color = isSelected ? AppColors.primarySoft : AppColors.mutedForeground;
     return GestureDetector(
       onTap: () => setState(() => _currentIndex = index),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.14)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: isSelected ? const Color(0xFF16A34A) : const Color(0xFF94A3B8),
-              size: 22,
+            AnimatedScale(
+              scale: isSelected ? 1.15 : 1,
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutBack,
+              child: Icon(icon, color: color, size: 22),
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? const Color(0xFF16A34A) : const Color(0xFF94A3B8),
+                color: color,
                 fontSize: 11,
-                fontWeight: FontWeight.w500,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
           ],

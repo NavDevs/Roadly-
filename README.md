@@ -10,20 +10,27 @@
 
 ## 📱 Direct APK Download
 
-**[📥 Download Roadly v1.0.0 APK (49.4MB)](https://github.com/NavDevs/Roadly-/releases/download/v1.0.0/app-release.apk)**
+**[📥 Download Roadly v1.0.8 (Final) APK](https://github.com/NavDevs/Roadly-/releases/download/v1.0.8/Roadly-v1.0.8-final.apk)**
 
 *Minimum Android: API 21 (Android 5.0)*
 
 ## ✨ Features
 
 ### 🚨 Report Road Issues
-- **Accident Reports** - Alert others about vehicle collisions (15 points)
-- **Road Work** - Notify about construction and maintenance zones (10 points)
-- **Congestion** - Share traffic jam information (5 points)
-- **Blocked Roads** - Report road blockages from fallen trees, floods, etc. (20 points)
+- **Accident** - Vehicle collisions (15 points) · **Fire** - Spreading fire (25 points)
+- **Road Work** - Construction and maintenance zones (10 points) · **Congestion** - Traffic jams (5 points)
+- **Blocked Roads** - Blockages from fallen trees, floods, etc. (20 points)
+- **Flooding** - Waterlogged roads (15 points) · **Pothole** - Road surface damage (10 points)
+- **Other** - Anything else worth warning fellow drivers about (15 points)
+- **Photo evidence** attached straight from the camera or gallery
+
+### ⏱️ Time-Based Lifecycle (no manual moderation)
+- Every report auto-expires after its server-side TTL (accident 2h, fire 1h, congestion 3h, blocked 4h, flooding 6h, roadwork/other 4h, pothole 48h)
+- Reports disappear from the map by themselves — the app follows the backend's `expires_at`, never local clock math
+- Emergencies (accident/fire) are dispatched to Signal-Aid drivers the moment they are reported
 
 ### 🗺️ Interactive Map
-- Real-time visualization of nearby incidents
+- Real-time visualization of nearby incidents (Socket.IO)
 - Location-based reporting with automatic GPS detection
 - Distance indicators for each report
 
@@ -79,6 +86,17 @@ roadly_flutter/
 ├── pubspec.yaml          # Dependencies
 └── README.md             # This file
 ```
+
+## ⚙️ Configuration
+
+| What | Where |
+|------|-------|
+| Backend URL (`baseUrl`) | `lib/providers/app_provider.dart` — points at the hosted ClearPath server (`https://clearpath-server.onrender.com`) |
+| Report types & points | `lib/constants/report_types.dart` |
+| Colors / theme | `lib/constants/colors.dart` |
+| Backend API docs | [`NavDevs/clearpath-server`](https://github.com/NavDevs/clearpath-server) → `API.md` |
+
+No API keys are shipped in the app — authentication uses phone + password against the backend, and the session is stored on-device only.
 
 ## 🚀 Getting Started
 
@@ -139,7 +157,7 @@ flutter build ios --release
 1. **Login**: Enter your mobile number to get started
 2. **Explore**: View nearby road incidents on the home screen
 3. **Report**: Tap the red button to report a new incident
-4. **Select**: Choose incident type (Accident, Road Work, Congestion, Blocked)
+4. **Select**: Choose incident type (Accident, Fire, Congestion, Blocked, Flooding, Pothole, Road Work, Other)
 5. **Details**: Add description and optional photo
 6. **Submit**: Report goes live instantly
 7. **Earn**: Collect points and climb the leaderboard
@@ -160,13 +178,12 @@ Roadly requires the following permissions:
 
 ## 🛣️ Roadmap
 
+- [x] Backend API with real-time updates ([clearpath-server](https://github.com/NavDevs/clearpath-server))
+- [x] Automatic report lifecycle (server-side TTL, no manual moderation)
 - [ ] Push notifications for nearby incidents
-- [ ] Integration with Google Maps / OpenStreetMap
-- [ ] Backend API with real-time updates
 - [ ] Multi-language support
 - [ ] Offline mode
-- [ ] Municipal authority dashboard
-- [ ] Integration with emergency services
+- [ ] Municipal authority dashboard extensions
 
 ## 📲 Download
 

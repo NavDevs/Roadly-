@@ -30,6 +30,22 @@ class ReportTypes {
       iconName: 'alert_octagon',
     ),
     ReportTypeMeta(
+      id: ReportType.fire,
+      label: 'Fire Alert',
+      short: 'Fire',
+      points: 25,
+      color: Color(0xFFF97316),
+      iconName: 'flame',
+    ),
+    ReportTypeMeta(
+      id: ReportType.other,
+      label: 'Other Emergency',
+      short: 'Other',
+      points: 15,
+      color: Color(0xFF8B5CF6),
+      iconName: 'alert_octagon',
+    ),
+    ReportTypeMeta(
       id: ReportType.roadWork,
       label: 'Road Work',
       short: 'Road work',
@@ -52,6 +68,22 @@ class ReportTypes {
       points: 20,
       color: Color(0xFFDC2626),
       iconName: 'slash',
+    ),
+    ReportTypeMeta(
+      id: ReportType.flooding,
+      label: 'Flooding',
+      short: 'Flooding',
+      points: 15,
+      color: Color(0xFF0EA5E9),
+      iconName: 'water',
+    ),
+    ReportTypeMeta(
+      id: ReportType.pothole,
+      label: 'Pothole',
+      short: 'Pothole',
+      points: 10,
+      color: Color(0xFFA16207),
+      iconName: 'pothole',
     ),
   ];
 

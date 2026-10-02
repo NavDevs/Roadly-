@@ -5,8 +5,14 @@ class AppColors {
   static const Color foreground = Color(0xFFF5F5F7);
   static const Color card = Color(0xFF151B21);
   static const Color cardForeground = Color(0xFFF5F5F7);
+
+  // Roadly brand green drives interactive elements (buttons, links, active
+  // states); semantic colors below keep their meaning (green = success,
+  // amber = warning, red = danger).
   static const Color primary = Color(0xFF16A34A);
   static const Color primaryForeground = Color(0xFFFFFFFF);
+  static const Color primarySoft = Color(0xFF4ADE80); // legible accent on dark
+
   static const Color secondary = Color(0xFF1F2933);
   static const Color secondaryForeground = Color(0xFFF5F5F7);
   static const Color muted = Color(0xFF1A2128);
