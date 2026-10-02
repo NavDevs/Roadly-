@@ -8,21 +8,26 @@ import 'screens/login_screen.dart';
 import 'screens/tabs_screen.dart';
 import 'screens/report_screen.dart';
 
+import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Never restore a previous account on launch: drop any stored session so
-  // the app always opens on the login screen — no ghost/old-user auto-login.
+  // Restore the saved session so the app opens signed in. A server data wipe
+  // is still handled by AppProvider._checkDataEpoch (sign-out only then).
+  String? userId;
   try {
     final dir = await getApplicationDocumentsDirectory();
-    final file = File(dir.path + '/roadly_session.json');
-    if (await file.exists()) await file.delete();
+    final file = File('${dir.path}/roadly_session.json');
+    if (await file.exists()) {
+      final data = json.decode(await file.readAsString());
+      userId = data['userId']?.toString();
+    }
   } catch (e) {
-    debugPrint('main() session cleanup error: $e');
+    debugPrint('main() session read error: $e');
   }
-  runApp(const MyApp());
+  runApp(MyApp(initialUserId: userId));
 }
 
 class MyApp extends StatelessWidget {

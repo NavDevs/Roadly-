@@ -22,6 +22,7 @@ class AppProvider with ChangeNotifier {
   // per transition, not every 10 seconds).
   final Set<String> _expiredAnnounced = {};
   Timer? _expiryTick;
+  Timer? _syncTick;
 
   // One-shot message shown on the next login screen (e.g. the server data
   // reset notice). Consumed on read so it never survives a re-login.
@@ -90,6 +91,18 @@ class AppProvider with ChangeNotifier {
         if (!isLiveReport(r) && _expiredAnnounced.add(r.id)) changed = true;
       }
       if (changed) notifyListeners();
+    });
+  }
+
+  /// Safety net under the socket: while signed in, re-sync the report list
+  /// every 30s so a dead or never-established socket can't freeze the home
+  /// feed (driver completes a trip, citizen badge stuck on "Dispatched").
+  /// No-op when signed out; a failed fetch is already swallowed by
+  /// [fetchReports].
+  void _startSyncTick() {
+    _syncTick?.cancel();
+    _syncTick = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_userId != null) fetchReports();
     });
   }
 
@@ -173,6 +186,7 @@ class AppProvider with ChangeNotifier {
     }
     _setupSocket();
     _startExpiryTick();
+    _startSyncTick();
     if (_userId != null) {
       await Future.wait([fetchReports(), fetchLeaderboard()]);
     } else {
@@ -185,6 +199,10 @@ class AppProvider with ChangeNotifier {
     socket = IO.io(baseUrl, IO.OptionBuilder().setTransports(['websocket']).build());
     socket.onConnect((_) {
       debugPrint('Connected to Realtime Dispatch');
+      // (Re)sync on every (re)connect: a socket that dropped (or was never
+      // established) must never leave the home feed showing a stale
+      // lifecycle badge after the driver completes a trip.
+      if (_userId != null) fetchReports();
     });
 
     socket.on('new_incident', (data) {
