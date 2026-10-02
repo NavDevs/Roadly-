@@ -146,12 +146,6 @@ flutter build appbundle --release
 flutter build ios --release
 ```
 
-## 📸 Screenshots
-
-| Home | Report | Rewards |
-|------|--------|---------|
-| Dashboard with map | Submit incident | Points & badges |
-
 ## 🤝 How It Works
 
 1. **Login**: Enter your mobile number to get started
