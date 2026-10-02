@@ -5,7 +5,6 @@ import '../constants/colors.dart';
 import '../providers/app_provider.dart';
 import '../widgets/expiring_report_list.dart';
 import '../widgets/map_preview.dart';
-import '../models/report.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -19,8 +18,6 @@ class HomeScreen extends StatelessWidget {
           // Only incidents the server still shows: expired/resolved ones are
           // filtered out (the list animates them away at their TTL).
           final reports = appProvider.liveReports;
-          final myReportsCount = reports.where((r) => r.byUser).length;
-          final verifiedCount = reports.where((r) => r.status == ReportStatus.verified).length;
 
           return Stack(
             children: [
@@ -98,41 +95,6 @@ class HomeScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: MapPreview(reports: reports),
                     ).animate().fade(delay: 100.ms, duration: 500.ms).scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1), curve: Curves.easeOutQuart),
-                    const SizedBox(height: 14),
-                    // Stats
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _statCard(
-                              Icons.layers,
-                              reports.length.toString(),
-                              'Active',
-                              AppColors.foreground,
-                            ).animate().fade(delay: 200.ms).slideY(begin: 0.2, curve: Curves.easeOutQuad),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _statCard(
-                              Icons.check_circle,
-                              verifiedCount.toString(),
-                              'Verified',
-                              AppColors.success,
-                            ).animate().fade(delay: 300.ms).slideY(begin: 0.2, curve: Curves.easeOutQuad),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _statCard(
-                              Icons.person,
-                              myReportsCount.toString(),
-                              'Yours',
-                              AppColors.accent,
-                            ).animate().fade(delay: 400.ms).slideY(begin: 0.2, curve: Curves.easeOutQuad),
-                          ),
-                        ],
-                      ),
-                    ),
                     const SizedBox(height: 18),
                     // Quick report CTA
                     Padding(
@@ -263,47 +225,6 @@ class HomeScreen extends StatelessWidget {
             ],
           );
         },
-      ),
-    );
-  }
-
-  Widget _statCard(IconData icon, String value, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(7),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, size: 16, color: color),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              color: AppColors.foreground,
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.mutedForeground,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
       ),
     );
   }
