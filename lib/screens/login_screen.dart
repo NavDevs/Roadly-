@@ -109,8 +109,18 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacementNamed(context, '/tabs');
       }
     } catch (e) {
+      // Never surface a raw exception (FormatException text, HTML pages,
+      // socket errors) — only messages that read like plain English.
+      final raw = e.toString().replaceAll('Exception: ', '').trim();
+      final technical = raw.isEmpty ||
+          raw.contains('<!DOCTYPE') ||
+          raw.contains('FormatException') ||
+          raw.contains('SocketException') ||
+          raw.contains('ClientException') ||
+          raw.contains('TimeoutException') ||
+          raw.contains('XMLHttpRequest');
       setState(() {
-        _error = e.toString().replaceAll('Exception: ', '');
+        _error = technical ? 'Something went wrong. Please try again.' : raw;
         _submitting = false;
       });
     }

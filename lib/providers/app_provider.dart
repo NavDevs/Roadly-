@@ -145,27 +145,32 @@ class AppProvider with ChangeNotifier {
   }
 
   Future<void> _init() async {
-    final intact = await _checkDataEpoch();
-    if (!intact) {
-      debugPrint('[AppProvider] Server data was reset — clearing local session');
-      _sessionNotice = 'Server data was reset. Please sign in again.';
-      _userId = null;
-      _phone = null;
-      _name = null;
-      _points = 0;
-      _rank = 1;
-      _reports = [];
-      _leaderboard = [];
-      _expiredAnnounced.clear();
-      try {
-        final sessionFile = File(await _sessionFilePath());
-        if (await sessionFile.exists()) await sessionFile.delete();
-      } catch (e) {
-        debugPrint('[AppProvider] Epoch wipe delete error: $e');
-      }
-    }
     await _loadFromStorage();
     debugPrint('[AppProvider] After load: _userId=$_userId, _phone=$_phone');
+    // Only a session loaded from disk needs the server-wipe guard (and the
+    // network round-trip it costs). A fresh login screen skips it so the
+    // app is usable immediately.
+    if (_userId != null) {
+      final intact = await _checkDataEpoch();
+      if (!intact) {
+        debugPrint('[AppProvider] Server data was reset — clearing local session');
+        _sessionNotice = 'Server data was reset. Please sign in again.';
+        _userId = null;
+        _phone = null;
+        _name = null;
+        _points = 0;
+        _rank = 1;
+        _reports = [];
+        _leaderboard = [];
+        _expiredAnnounced.clear();
+        try {
+          final sessionFile = File(await _sessionFilePath());
+          if (await sessionFile.exists()) await sessionFile.delete();
+        } catch (e) {
+          debugPrint('[AppProvider] Epoch wipe delete error: $e');
+        }
+      }
+    }
     _setupSocket();
     _startExpiryTick();
     if (_userId != null) {
@@ -380,50 +385,91 @@ class AppProvider with ChangeNotifier {
 
   Future<void> login(String incomingPhone, String password) async {
     final cleaned = incomingPhone.replaceAll(RegExp(r'\D'), '');
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/auth/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'phone': cleaned, 'password': password}),
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body)['user'];
-      _userId = data['id'];
-      _phone = data['phone'];
-      _name = data['name'];
-      _points = data['points'] ?? 0;
-      debugPrint('[AppProvider] Login success: userId=$_userId');
-      await _persist();
-      await Future.wait([fetchReports(), fetchLeaderboard()]);
-      notifyListeners();
-    } else {
-      final error = json.decode(response.body)['error'];
-      throw Exception(error ?? 'Failed to log in');
-    }
+    final response = await _postJson(
+        '$baseUrl/api/auth/login', {'phone': cleaned, 'password': password});
+    await _applyAuthResponse(response, 'Login success');
   }
 
   Future<void> register(String name, String incomingPhone, String password) async {
     final cleaned = incomingPhone.replaceAll(RegExp(r'\D'), '');
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/auth/register'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'phone': cleaned, 'name': name, 'password': password}),
-    );
+    final response = await _postJson('$baseUrl/api/auth/register',
+        {'name': name, 'phone': cleaned, 'password': password});
+    await _applyAuthResponse(response, 'Register success');
+  }
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body)['user'];
-      _userId = data['id'];
-      _phone = data['phone'];
-      _name = data['name'];
-      _points = data['points'] ?? 0;
-      debugPrint('[AppProvider] Register success: userId=$_userId');
+  /// POST with a hard timeout. Network-level failures (no internet, DNS,
+  /// proxy error pages, timeouts) become one friendly message — a raw
+  /// exception must never reach the login screen.
+  Future<http.Response> _postJson(String url, Map<String, dynamic> body) async {
+    try {
+      return await http
+          .post(Uri.parse(url),
+              headers: {'Content-Type': 'application/json'},
+              body: json.encode(body))
+          .timeout(const Duration(seconds: 20));
+    } on TimeoutException {
+      throw Exception('The server is taking too long. Please try again.');
+    } catch (_) {
+      throw Exception(
+          'Could not reach the server. Check your internet connection and try again.');
+    }
+  }
+
+  /// Shared success/error handling for login and register. Failures throw
+  /// only human-readable text produced by [authErrorMessage].
+  Future<void> _applyAuthResponse(http.Response response, String logLabel) async {
+    final body = _tryDecodeObject(response.body);
+    final user = body?['user'];
+    if (response.statusCode == 200 && user is Map) {
+      final data = Map<String, dynamic>.from(user);
+      _userId = data['id']?.toString();
+      _phone = data['phone']?.toString();
+      _name = data['name']?.toString();
+      _points = (data['points'] as num?)?.toInt() ?? 0;
+      debugPrint('[AppProvider] $logLabel: userId=$_userId');
       await _persist();
       await Future.wait([fetchReports(), fetchLeaderboard()]);
       notifyListeners();
-    } else {
-      final error = json.decode(response.body)['error'];
-      throw Exception(error ?? 'Failed to register');
+      return;
     }
+    throw Exception(authErrorMessage(response.statusCode, body));
+  }
+
+  /// Decodes a response body only if it really is JSON. Anything else
+  /// (HTML proxy/error pages, truncated bodies) returns null instead of
+  /// throwing a FormatException at character 1.
+  Map<String, dynamic>? _tryDecodeObject(String source) {
+    try {
+      final decoded = json.decode(source);
+      return decoded is Map ? Map<String, dynamic>.from(decoded) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Turns a failed auth response into a message that is safe to show the
+  /// user. The server's own `error` string passes through; anything
+  /// technical (FormatException text, HTML, missing body) becomes a
+  /// generic sentence.
+  String authErrorMessage(int statusCode, Map<String, dynamic>? body) {
+    final serverError = body?['error']?.toString().trim();
+    if (serverError != null &&
+        serverError.isNotEmpty &&
+        !serverError.contains('<!DOCTYPE')) {
+      return serverError;
+    }
+    if (statusCode == 400) return 'Please check your details and try again.';
+    if (statusCode == 401) return 'Incorrect phone number or password.';
+    if (statusCode == 404) {
+      return 'No account found for this number. Please sign up first.';
+    }
+    if (statusCode == 429) {
+      return 'Too many attempts. Please wait a moment and try again.';
+    }
+    if (statusCode >= 500) {
+      return 'The server is having trouble. Please try again in a moment.';
+    }
+    return 'Could not reach the server. Check your internet connection and try again.';
   }
 
   Future<void> logout() async {

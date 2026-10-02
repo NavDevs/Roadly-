@@ -10,7 +10,7 @@
 
 ## 📱 Direct APK Download
 
-**[📥 Download Roadly v1.0.8 (Final) APK](https://github.com/NavDevs/Roadly-/releases/download/v1.0.8/Roadly-v1.0.8-final.apk)**
+**[📥 Download Roadly v1.0.9 (Final) APK](https://github.com/NavDevs/Roadly-/releases/download/v1.0.9/Roadly-v1.0.9-final.apk)**
 
 *Minimum Android: API 21 (Android 5.0)*
 
