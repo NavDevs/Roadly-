@@ -8,7 +8,9 @@
 
 <img src="assets/images/icon.png" width="150" height="150" alt="Roadly App Preview">
 
-## 📱 Direct APK Download
+## 🌐 Website & APK Download
+
+**[🌐 Website: navdevs.github.io/Roadly-](https://navdevs.github.io/Roadly-/)**
 
 **[📥 Download Roadly v1.0.11 (Final) APK](https://github.com/NavDevs/Roadly-/releases/download/v1.0.11/Roadly-v1.0.11-final.apk)**
 
