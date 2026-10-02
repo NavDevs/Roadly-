@@ -12,7 +12,7 @@
 
 **[🌐 Website: navdevs.github.io/Roadly-](https://navdevs.github.io/Roadly-/)**
 
-**[📥 Download Roadly v1.0.11 (Final) APK](https://github.com/NavDevs/Roadly-/releases/download/v1.0.11/Roadly-v1.0.11-final.apk)**
+**[📥 Download Roadly v1.2.0 (Final) APK](https://github.com/NavDevs/Roadly-/releases/download/v1.2.0/Roadly-v1.2.0-Final.apk)**
 
 *Minimum Android: API 21 (Android 5.0)*
 
