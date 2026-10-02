@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Roadly — Report road hazards. Keep everyone moving.</title>
   <meta name="description" content="Roadly is a free community-powered app that lets drivers report accidents, fires, flooding, potholes and more — live on a shared map, with points for every report. Download the APK directly for Android.">
   <meta name="theme-color" content="#5D7052">
@@ -11,6 +11,8 @@
   <meta property="og:type" content="website">
   <meta property="og:image" content="assets/icon.png">
   <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="apple-touch-icon" href="assets/icon.png">
+  <noscript><style>.reveal { opacity: 1; transform: none; }</style></noscript>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -411,6 +413,17 @@
       <p>&copy; <span id="year">2026</span> NavDevs. Built with care, not straight lines.</p>
     </div>
   </footer>
+
+  <aside class="mobile-dl" id="mobile-dl" aria-label="Download Roadly">
+    <span class="mobile-dl-info">
+      <strong>Roadly</strong>
+      <span>Free &middot; 54&nbsp;MB &middot; Android 5.0+</span>
+    </span>
+    <a class="btn btn-primary btn-sm" href="https://github.com/NavDevs/Roadly-/releases/download/v1.0.8/Roadly-v1.0.8-final.apk">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download
+    </a>
+  </aside>
 
   <script src="script.js" defer></script>
 </body>
